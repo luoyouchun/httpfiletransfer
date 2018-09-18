@@ -58,26 +58,26 @@ namespace lpp
     class OS
     {
     public:
-        static bool isOSAtLeast(OSVersionEnum eRequieOS, int nRequireServerPack);
+        //static bool isOSAtLeast(OSVersionEnum eRequieOS, int nRequireServerPack);
 
-        static void intitOSVersionInfo();
+        //static void intitOSVersionInfo();
 
         static bool is64BitOS();
 
-        static bool isWindows2000();
+        //static bool isWindows2000();
 
-        static bool isWinXp();
+        //static bool isWinXp();
 
-        static bool isWindows7();
+        //static bool isWindows7();
 
-        static OSVersionEnum getCurrentOsType();
+        //static OSVersionEnum getCurrentOsType();
 
-        static bool sm_bServer;
-        static bool sm_bRemoteSession;
-        static OSVersionEnum sm_eCurrentOS;
-        static int sm_nCurrentOSMajor;
-        static int sm_nCurrentOSMinor;
-        static int sm_nCurrentOSserverPack;
+        //static bool sm_bServer;
+        //static bool sm_bRemoteSession;
+        //static OSVersionEnum sm_eCurrentOS;
+        //static int sm_nCurrentOSMajor;
+        //static int sm_nCurrentOSMinor;
+        //static int sm_nCurrentOSserverPack;
     };
 
     class EnviromentGuard
@@ -99,6 +99,8 @@ namespace lpp
     };
 
     bool split(const std::string & strData, const char * pszSeparator, std::list<std::string>& lstOutput);
+
+    std::wstring GetCurrentPath();
 }
 
 

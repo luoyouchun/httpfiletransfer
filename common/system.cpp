@@ -22,6 +22,7 @@ Date    Author      Modification:
 
 
 #pragma comment(lib, "netapi32.lib")
+#pragma comment(lib, "Ntdll.lib")
 
 namespace lpp
 {
@@ -45,210 +46,210 @@ namespace lpp
         return true;
     }
 
-    bool sm_bServer = false;
-    bool sm_bRemoteSession = false;
-    OSVersionEnum sm_eCurrentOS = WIN_UNKNOWN;
-    int sm_nCurrentOSMajor = 0;
-    int sm_nCurrentOSMinor = 0;
-    int sm_nCurrentOSserverPack = 0;
+    //bool sm_bServer = false;
+    //bool sm_bRemoteSession = false;
+    //OSVersionEnum sm_eCurrentOS = WIN_UNKNOWN;
+    //int sm_nCurrentOSMajor = 0;
+    //int sm_nCurrentOSMinor = 0;
+    //int sm_nCurrentOSserverPack = 0;
 
-    bool OS::isOSAtLeast(OSVersionEnum eRequieOS, int nRequireServerPack)
+    //bool OS::isOSAtLeast(OSVersionEnum eRequieOS, int nRequireServerPack)
+    //{
+    //    if (0 == sm_nCurrentOSMajor)
+    //    {
+    //        intitOSVersionInfo();
+    //    }
+
+    //    int major = 0;
+    //    int minor = 0;
+
+    //    switch (eRequieOS)
+    //    {
+    //    case WIN_2000:
+    //        major = 5;
+    //        minor = 0;
+    //        break;
+    //    case WIN_XP:
+    //        major = 5;
+    //        minor = 1;
+    //        break;
+    //    case WIN_SERVER_2003:
+    //        major = 5;
+    //        minor = 2;
+    //        break;
+    //    case WIN_VISTA:
+    //    case WIN_SERVER_2008:
+    //        major = 6;
+    //        minor = 0;
+    //        break;
+    //    case WIN_7:
+    //    case WIN_SERVER_2008_R2:
+    //        major = 6;
+    //        minor = 1;
+    //        break;
+    //    case WIN_8:
+    //    case WIN_SERVER_2012:
+    //        major = 6;
+    //        minor = 2;
+    //        break;
+    //    case WIN_8_1:
+    //    case WIN_SERVER_2012_R2:
+    //        major = 6;
+    //        minor = 3;
+    //        break;
+    //    case WIN_10:
+    //    case WIN_SERVER_2016:
+    //        major = 10;
+    //        minor = 0;
+    //        break;
+    //    default:
+    //        break;
+    //    }
+
+    //    return(((sm_nCurrentOSMajor << 16) | (sm_nCurrentOSMinor << 8) | sm_nCurrentOSserverPack) >=
+    //           ((major << 16) | (minor < 8) | nRequireServerPack));
+    //}
+
+    //void OS::intitOSVersionInfo()
+    //{
+    //    sm_bRemoteSession = GetSystemMetrics(SM_REMOTESESSION) != 0;
+
+    //    // 获取操作系统信息
+    //    WKSTA_INFO_100 * pwksInfo = NULL;
+    //    NET_API_STATUS netStatus = NetWkstaGetInfo(NULL, 100, (LPBYTE*)&pwksInfo);
+    //    if (NERR_Success == netStatus)
+    //    {
+    //        sm_nCurrentOSMajor = pwksInfo->wki100_ver_major;
+    //        sm_nCurrentOSMinor = pwksInfo->wki100_ver_minor;
+
+    //        sm_bServer = IsWindowsServer();
+
+    //        if (sm_nCurrentOSMajor == 5 && sm_nCurrentOSMinor == 0)
+    //        {
+    //            sm_eCurrentOS = WIN_2000;
+    //        }
+    //        else if (sm_nCurrentOSMajor == 5 && sm_nCurrentOSMinor == 1)
+    //        {
+    //            sm_eCurrentOS = WIN_XP;
+    //        }
+    //        else if (sm_nCurrentOSMajor == 6 && sm_nCurrentOSMinor == 0)
+    //        {
+    //            sm_eCurrentOS = sm_bServer ? WIN_SERVER_2008 : WIN_VISTA;
+    //        }
+    //        else if (sm_nCurrentOSMajor == 6 && sm_nCurrentOSMinor == 1)
+    //        {
+    //            sm_eCurrentOS = sm_bServer ? WIN_SERVER_2008_R2 : WIN_7;
+    //        }
+    //        else if (sm_nCurrentOSMajor == 6 && sm_nCurrentOSMinor == 2)
+    //        {
+    //            sm_eCurrentOS = sm_bServer ? WIN_SERVER_2012 : WIN_8;
+    //        }
+    //        else if (sm_nCurrentOSMajor == 6 && sm_nCurrentOSMinor == 3)
+    //        {
+    //            sm_eCurrentOS = sm_bServer ? WIN_SERVER_2012_R2 : WIN_8_1;
+    //        }
+    //        else if (sm_nCurrentOSMajor == 10 && sm_nCurrentOSMinor == 0)
+    //        {
+    //            sm_eCurrentOS = sm_bServer ? WIN_SERVER_2016 : WIN_10;
+    //        }
+    //        else
+    //        {
+    //            sm_eCurrentOS = WIN_UNKNOWN;
+    //        }
+
+    //        netStatus = NetApiBufferFree(pwksInfo);
+    //    }
+    //}
+
+bool OS::is64BitOS()
+{
+    bool bResult = false;
+    SYSTEM_INFO si;
+    DllParser oDllCaller;
+    if (oDllCaller.Load("Kernel32.dll"))
     {
-        if (0 == sm_nCurrentOSMajor)
+        try
         {
-            intitOSVersionInfo();
+            oDllCaller.ExcecuteFunc<void(SYSTEM_INFO *)>("GetNativeSystemInfo", &si);
+        }
+        catch (...)
+        {
+            GetSystemInfo(&si);
         }
 
-        int major = 0;
-        int minor = 0;
-
-        switch (eRequieOS)
+        if (PROCESSOR_ARCHITECTURE_AMD64 == si.wProcessorArchitecture ||
+            PROCESSOR_ARCHITECTURE_IA64 == si.wProcessorArchitecture)
         {
-        case WIN_2000:
-            major = 5;
-            minor = 0;
-            break;
-        case WIN_XP:
-            major = 5;
-            minor = 1;
-            break;
-        case WIN_SERVER_2003:
-            major = 5;
-            minor = 2;
-            break;
-        case WIN_VISTA:
-        case WIN_SERVER_2008:
-            major = 6;
-            minor = 0;
-            break;
-        case WIN_7:
-        case WIN_SERVER_2008_R2:
-            major = 6;
-            minor = 1;
-            break;
-        case WIN_8:
-        case WIN_SERVER_2012:
-            major = 6;
-            minor = 2;
-            break;
-        case WIN_8_1:
-        case WIN_SERVER_2012_R2:
-            major = 6;
-            minor = 3;
-            break;
-        case WIN_10:
-        case WIN_SERVER_2016:
-            major = 10;
-            minor = 0;
-            break;
-        default:
-            break;
+            bResult = true;
         }
-
-        return(((sm_nCurrentOSMajor << 16) | (sm_nCurrentOSMinor << 8) | sm_nCurrentOSserverPack) >=
-               ((major << 16) | (minor < 8) | nRequireServerPack));
     }
 
-    void OS::intitOSVersionInfo()
+    return bResult;
+}
+
+    //bool OS::isWindows2000()
+    //{
+    //    if (0 == sm_nCurrentOSMajor)
+    //    {
+    //        intitOSVersionInfo();
+    //    }
+
+    //    return (sm_nCurrentOSMajor == 5 && sm_nCurrentOSMinor == 0);
+    //}
+
+    //bool OS::isWinXp()
+    //{
+    //    if (0 == sm_nCurrentOSMajor)
+    //    {
+    //        intitOSVersionInfo();
+    //    }
+
+    //    return (sm_nCurrentOSMajor == 5 && sm_nCurrentOSMinor == 1);
+    //}
+
+    //bool OS::isWindows7()
+    //{
+    //    if (0 == sm_nCurrentOSMajor)
+    //    {
+    //        intitOSVersionInfo();
+    //    }
+
+    //    return (sm_nCurrentOSMajor == 6 && sm_nCurrentOSMinor == 1);
+    //}
+
+    //OSVersionEnum OS::getCurrentOsType()
+    //{
+    //    if (WIN_UNKNOWN == sm_eCurrentOS)
+    //    {
+    //        intitOSVersionInfo();
+    //    }
+
+    //    return sm_eCurrentOS;
+    //}
+
+EnviromentGuard::EnviromentGuard() : m_bCloseFileRed(FALSE), m_oldValue(nullptr)
+{
+    if (OS::is64BitOS())
     {
-        sm_bRemoteSession = GetSystemMetrics(SM_REMOTESESSION) != 0;
-
-        // 获取操作系统信息
-        WKSTA_INFO_100 * pwksInfo = NULL;
-        NET_API_STATUS netStatus = NetWkstaGetInfo(NULL, 100, (LPBYTE*)&pwksInfo);
-        if (NERR_Success == netStatus)
-        {
-            sm_nCurrentOSMajor = pwksInfo->wki100_ver_major;
-            sm_nCurrentOSMinor = pwksInfo->wki100_ver_minor;
-
-            sm_bServer = IsWindowsServer();
-
-            if (sm_nCurrentOSMajor == 5 && sm_nCurrentOSMinor == 0)
-            {
-                sm_eCurrentOS = WIN_2000;
-            }
-            else if (sm_nCurrentOSMajor == 5 && sm_nCurrentOSMinor == 1)
-            {
-                sm_eCurrentOS = WIN_XP;
-            }
-            else if (sm_nCurrentOSMajor == 6 && sm_nCurrentOSMinor == 0)
-            {
-                sm_eCurrentOS = sm_bServer ? WIN_SERVER_2008 : WIN_VISTA;
-            }
-            else if (sm_nCurrentOSMajor == 6 && sm_nCurrentOSMinor == 1)
-            {
-                sm_eCurrentOS = sm_bServer ? WIN_SERVER_2008_R2 : WIN_7;
-            }
-            else if (sm_nCurrentOSMajor == 6 && sm_nCurrentOSMinor == 2)
-            {
-                sm_eCurrentOS = sm_bServer ? WIN_SERVER_2012 : WIN_8;
-            }
-            else if (sm_nCurrentOSMajor == 6 && sm_nCurrentOSMinor == 3)
-            {
-                sm_eCurrentOS = sm_bServer ? WIN_SERVER_2012_R2 : WIN_8_1;
-            }
-            else if (sm_nCurrentOSMajor == 10 && sm_nCurrentOSMinor == 0)
-            {
-                sm_eCurrentOS = sm_bServer ? WIN_SERVER_2016 : WIN_10;
-            }
-            else
-            {
-                sm_eCurrentOS = WIN_UNKNOWN;
-            }
-
-            netStatus = NetApiBufferFree(pwksInfo);
-        }
-    }
-
-    bool OS::is64BitOS()
-    {
-        bool bResult = false;
-        SYSTEM_INFO si;
         DllParser oDllCaller;
         if (oDllCaller.Load("Kernel32.dll"))
         {
-            try
-            {
-                oDllCaller.ExcecuteFunc<void(SYSTEM_INFO *)>("GetNativeSystemInfo", &si);
-            }
-            catch (...)
-            {
-                GetSystemInfo(&si);
-            }
-
-            if (PROCESSOR_ARCHITECTURE_AMD64 == si.wProcessorArchitecture ||
-                PROCESSOR_ARCHITECTURE_IA64 == si.wProcessorArchitecture)
-            {
-                bResult = true;
-            }
+            m_bCloseFileRed = oDllCaller.ExcecuteFunc<BOOL (PVOID *)>("Wow64DisableWow64FsRedirection", &m_oldValue);
         }
-
-        return bResult;
     }
+}
 
-    bool OS::isWindows2000()
+EnviromentGuard::~EnviromentGuard()
+{
+    if (m_bCloseFileRed)
     {
-        if (0 == sm_nCurrentOSMajor)
+        DllParser oDllCaller;
+        if (oDllCaller.Load("Kernel32.dll"))
         {
-            intitOSVersionInfo();
-        }
-
-        return (sm_nCurrentOSMajor == 5 && sm_nCurrentOSMinor == 0);
-    }
-
-    bool OS::isWinXp()
-    {
-        if (0 == sm_nCurrentOSMajor)
-        {
-            intitOSVersionInfo();
-        }
-
-        return (sm_nCurrentOSMajor == 5 && sm_nCurrentOSMinor == 1);
-    }
-
-    bool OS::isWindows7()
-    {
-        if (0 == sm_nCurrentOSMajor)
-        {
-            intitOSVersionInfo();
-        }
-
-        return (sm_nCurrentOSMajor == 6 && sm_nCurrentOSMinor == 1);
-    }
-
-    lpp::OSVersionEnum OS::getCurrentOsType()
-    {
-        if (WIN_UNKNOWN == sm_eCurrentOS)
-        {
-            intitOSVersionInfo();
-        }
-
-        return sm_eCurrentOS;
-    }
-
-    EnviromentGuard::EnviromentGuard() : m_bCloseFileRed(FALSE), m_oldValue(nullptr)
-    {
-        if (OS::is64BitOS())
-        {
-            DllParser oDllCaller;
-            if (oDllCaller.Load("Kernel32.dll"))
-            {
-                m_bCloseFileRed = oDllCaller.ExcecuteFunc<BOOL (PVOID *)>("Wow64DisableWow64FsRedirection", &m_oldValue);
-            }            
+            oDllCaller.ExcecuteFunc<BOOL (PVOID)>("Wow64RevertWow64FsRedirection", m_oldValue);
         }
     }
-
-    EnviromentGuard::~EnviromentGuard()
-    {
-        if (m_bCloseFileRed)
-        {
-            DllParser oDllCaller;
-            if (oDllCaller.Load("Kernel32.dll"))
-            {
-                oDllCaller.ExcecuteFunc<BOOL (PVOID)>("Wow64RevertWow64FsRedirection", m_oldValue);
-            }
-        }
-    }
+}
 
 #ifndef PIPE_INPUT_BUFFER_SIZE
 #define PIPE_INPUT_BUFFER_SIZE  4096
@@ -343,5 +344,16 @@ namespace lpp
         EnviromentGuard oGuard;
 
         return GetCmdOutput(strCommond, lstOutput);
+    }
+
+
+    std::wstring GetCurrentPath()
+    {
+        WCHAR szFilePath[MAX_PATH + 1] = { 0 };
+        GetModuleFileName(NULL, szFilePath, MAX_PATH);
+        (wcsrchr(szFilePath, L'\\'))[0] = 0;     // 删除文件名，只获得路径字串  
+        std::wstring path = szFilePath;
+
+        return path;
     }
 }

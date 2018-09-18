@@ -21,7 +21,6 @@
 *
 **********************************************************************/
 
-#include "stdafx.h"
 #include "tstrings.h"
 #include <memory>
 #include <stdio.h>

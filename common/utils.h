@@ -23,8 +23,15 @@ public:
 
         m_hHandle = hHandle;
     }
+
+    HandleT get()
+    {
+        return m_hHandle;
+    }
+
 private:
     void Close();
+
     HandleT m_hHandle;
 };
 
