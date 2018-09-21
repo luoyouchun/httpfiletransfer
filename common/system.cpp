@@ -293,7 +293,6 @@ EnviromentGuard::~EnviromentGuard()
         if (!CreateProcessA(NULL, (char *)strCommond.c_str(), NULL, NULL, TRUE, NULL, NULL, NULL, &si, &pi))
         {
             return bRtn;
-            //return TEXT("Cannot create process");
         }
         else
         {
@@ -303,7 +302,7 @@ EnviromentGuard::~EnviromentGuard()
             HandleHolder<HANDLE> hPipeWrite(hWrite);
 
             // 等待执行完成
-            if (WaitForSingleObject(pi.hProcess, 2000) == WAIT_FAILED)
+            if (WaitForSingleObject(pi.hProcess, INFINITE) == WAIT_FAILED)
             {
                 return false;
             }

@@ -103,11 +103,7 @@ bool CHttpServer::Star()
     si.hStdOutput = hWrite;
 
     // 启动命令行        
-    if (!CreateProcess(NULL, (LPTSTR)strCommond.c_str(), NULL, NULL, TRUE, NULL, NULL, NULL, &si, &pi))
-    {
-        return bRtn;
-    }
-    else
+    if (CreateProcess(NULL, (LPTSTR)strCommond.c_str(), NULL, NULL, TRUE, NULL, NULL, NULL, &si, &pi))
     {
         // 等待调用完成，释放句柄       
         HandleHolder<HANDLE> hThread(pi.hThread);
@@ -127,38 +123,20 @@ bool CHttpServer::Star()
             CloseHandle(pi.hProcess);
             m_bStart = false;
         }
-    }
 
-    // 启动一个异步的线程，用于读取进程输出
-    m_exit_future = std::move(std::async(std::launch::async, [this]
-    {
-        char szBuffer[PIPE_INPUT_BUFFER_SIZE + 1] = { 0 };
-        DWORD dwBytesRead = 0;
-        DWORD dwAllBytesRead = 0;
-
-        while (ReadFile(this->m_hPipeRead.get(), szBuffer, PIPE_INPUT_BUFFER_SIZE, &dwBytesRead, NULL))
+        // 启动一个异步的线程，用于读取进程输出
+        m_exit_future = std::move(std::async(std::launch::async, [this]
         {
-            if (dwBytesRead > 0)
-            {
-                m_strOutput += szBuffer;
-                dwAllBytesRead += dwBytesRead;
-            }
-            else
-            {
-                break;
-            }
-
-            memset(szBuffer, 0, PIPE_INPUT_BUFFER_SIZE + 1);
-        }
-    }));
-
+            this->run();
+        }));
+    }
 
     return bRtn;
 }
 
+
 bool CHttpServer::Stop()
 {
-
     if (m_hProcess)
     {
         TerminateProcess(m_hProcess, 0);
@@ -174,4 +152,33 @@ bool CHttpServer::Stop()
     }
 
     return true;
+}
+
+std::string CHttpServer::GetOutputText()
+{
+    std::lock_guard<std::mutex> lk(m_mutex);
+    return std::move(m_strOutput);
+}
+
+void CHttpServer::run()
+{
+    char szBuffer[PIPE_INPUT_BUFFER_SIZE + 1] = { 0 };
+    DWORD dwBytesRead = 0;
+    DWORD dwAllBytesRead = 0;
+
+    while (ReadFile(this->m_hPipeRead.get(), szBuffer, PIPE_INPUT_BUFFER_SIZE, &dwBytesRead, NULL))
+    {
+        if (dwBytesRead > 0)
+        {
+            std::lock_guard<std::mutex> lk(m_mutex);
+            m_strOutput += szBuffer;
+            dwAllBytesRead += dwBytesRead;
+        }
+        else
+        {
+            break;
+        }
+
+        memset(szBuffer, 0, PIPE_INPUT_BUFFER_SIZE + 1);
+    }
 }

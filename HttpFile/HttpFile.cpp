@@ -29,5 +29,11 @@ void HttpFile::btnStopHttpServer()
 
 void HttpFile::update()
 {
-    ui.txtServerOutput->setText(QString::fromStdString(m_oHttpServer.GetOutputText()));
+    std::string strOutput;
+    strOutput = m_oHttpServer.GetOutputText();
+
+    if (strOutput.length())
+    {
+        ui.txtServerOutput->append(QString::fromStdString(strOutput));
+    }
 }
