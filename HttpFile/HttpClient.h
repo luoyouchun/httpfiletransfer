@@ -28,13 +28,16 @@ public:
     
     /// <summary>
     /// 使用CURL下载文件
+    /// // GET  /shared/{filepath}
+    /// curl http://192.168.1.11/share/1.txt -o "c:\1.txt"
     /// </summary>
-    /// <param name="strUrl">下载地址，完整URL，需要进行URL转码</param>
+    /// <param name="strUrl">下载URL</param>
+    /// <param name="strUri">下载地址，完整URI，需要进行URL转码</param>
     /// <param name="strLocalPath">本地保存路径</param>
     /// <param name="StrName">本地保存的文件名</param>
     /// <param name="ulSize">文件大小，文件大于0时需要校验文件大小，只支持小于4G的文件</param>
     /// <returns>返回是否下载成功</returns>
-    bool DownloadFile(const std::wstring& strUrl, const std::wstring& strLocalPath, const std::wstring& StrName,uint32_t ulSize = 0);
+    bool DownloadFile(const std::wstring& strUrl, const std::wstring& strUri, const std::wstring& strLocalPath, const std::wstring& StrName, uint32_t ulSize = 0);
 
 
 };

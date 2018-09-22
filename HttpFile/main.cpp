@@ -8,8 +8,8 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    CHttpClient oClient;
-    oClient.DownloadFile(L"http://127.0.0.1:3128/shared//Readme - 副本.txt", L"C:\\Users\\Eric\\Documents\\", L"1.txt", 0);
+    //CHttpClient oClient;
+    //oClient.DownloadFile(L"http://127.0.0.1:3128/shared//", L"Readme - 副本.txt", L"C:\\Users\\Eric\\Documents\\", L"1.txt", 11321);
     //CHttpServer oServer(L"\"D:\\WD Software Offline Installers\"", 3128);
     //oServer.Star();
 

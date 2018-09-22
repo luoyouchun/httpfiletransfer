@@ -46,8 +46,12 @@ using std::allocator;
 
 const string __wstring2string(const wstring& str);
 const wstring __string2wstring(const string& str);
+
 const std::string ws2utf8(const std::wstring& src);
 const std::wstring utf8_2_ws(const std::string& src);
+
+std::string UrlEncode(const std::string& str);
+std::string UrlDecode(const std::string& str);
 
 #if defined(UNICODE)
 typedef RPC_WSTR RPC_TSTR;
