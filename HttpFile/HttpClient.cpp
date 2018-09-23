@@ -7,16 +7,22 @@
 #include "tstrings.h"
 #include "boost/filesystem.hpp"
 
+#include "boost/uuid/uuid.hpp"
+#include "boost/uuid/uuid_io.hpp"
+#include "boost/uuid/uuid_generators.hpp"
+
 
 CHttpClient::CHttpClient()
 {
+    // 获取本地路径
+    strCurlFullPath = fmt::format("{}\\curl.exe", __wstring2string(lpp::GetCurrentPath()));
 }
 
 
 CHttpClient::~CHttpClient()
 {
 }
-
+// 下载 http://127.0.0.1:3128/shared//Readme%20-%20%E5%89%AF%E6%9C%AC.txt
 bool CHttpClient::DownloadFile(const std::wstring& strUrl, const std::wstring& strUri,
                                const std::wstring& strLocalPath, const std::wstring& StrName, uint32_t ulSize)
 {
@@ -24,13 +30,10 @@ bool CHttpClient::DownloadFile(const std::wstring& strUrl, const std::wstring& s
 
     // 尝试用fmt构造
     // 1.构造准备调用的参数
-    // 1.1 获取本地路径
-    std::wstring strPath = lpp::GetCurrentPath();
-    std::wstring strCommand = std::move(strPath);
 
     // 1.2 构造URL
-    std::string strCom = fmt::format("{}\\curl.exe {}{} -o\"{}\"",
-                                    __wstring2string(strCommand), __wstring2string(strUrl),
+    std::string strCom = fmt::format("{} {}{} -o\"{}\" -w %{{http_code}}",
+                                    strCurlFullPath, __wstring2string(strUrl),
                                     UrlEncode(ws2utf8(strUri)),
                                     __wstring2string(strLocalPath + StrName));
 
@@ -54,11 +57,109 @@ bool CHttpClient::DownloadFile(const std::wstring& strUrl, const std::wstring& s
     return bResult;
 }
 
-// 上传 http://127.0.0.1:3128/shared//Readme%20-%20%E5%89%AF%E6%9C%AC.txt
-// curl http://192.168.1.11/upload -F "folder=logs" -F "file=@1.txt"
+
+// curl http://192.168.1.11/upload -F "folder=logs" -F "file=@1.txt;filename=1.txt"
+bool CHttpClient::UploadFile(const std::wstring& strUrl, const std::wstring& strHttpDir, const std::wstring& strHttpFileName, const std::wstring& strLocalName)
+{
+    bool bResult = false;
+
+    // 由于中文轮换的支持两端不是很统一，用UUID上传，上传成功后修改名称
+    boost::uuids::uuid a_uuid = boost::uuids::random_generator()(); // 这里是两个() ，因为这里是调用的 () 的运算符重载
+    const std::string tmp_uuid = boost::uuids::to_string(a_uuid);
+
+    // 1.上传
+    // ??? 需要首先检查上传的文件是否存在，如果存在，需要返回错误
+    // 1.1构造上传的命令行调用
+
+    std::string strCom = fmt::format("{} {}upload -F \"folder={}\" -F \"file=@{}; filename={}\" -w %{{http_code}}",
+                                    strCurlFullPath,
+                                    __wstring2string(strUrl),
+                                    UrlEncode(ws2utf8(strHttpDir)),
+                                    __wstring2string(strLocalName),
+                                    tmp_uuid);
+    // 1.2 上传
+    std::list<std::string> lstOutput;
+    lpp::CCmdoutput::GetCmdOutput(strCom, lstOutput);
+
+    // 2. 检查上传是否成功
+    bResult = CheckSuccess(lstOutput);
+
+    // 3.修改名称
+    if (bResult)
+    {
+        // 修改名称也成功了，视为成功
+        bResult = Rename(strUrl, strHttpDir, __string2wstring(tmp_uuid), strHttpFileName);
+    }
+    {
+        // 改名失败了，还需要删除上传成功的文件
+        std::string strDeleteFilePath = fmt::format("{}/{}", UrlEncode(ws2utf8(strHttpDir)), tmp_uuid);
+        Delete(strUrl, __string2wstring(strDeleteFilePath));
+    }
+
+    return bResult;
+}
+
+
+// curl http://192.168.1.11/rename -F "old=\Test\aaaaa.pdf" -F "new=1.pdf"
+bool CHttpClient::Rename(const std::wstring& strUrl, const std::wstring& strHttpDir, const std::wstring& strOldName, const std::wstring& strNewName)
+{
+    bool bResult = false;
+
+    // 1.构造参数
+    std::string strFullOldName = fmt::format("{}/{}", UrlEncode(ws2utf8(strHttpDir)), UrlEncode(ws2utf8(strOldName)));
+
+    std::string strCom = fmt::format("{} {}rename -F \"old={}\" -F \"new={}\" -w %{{http_code}}",
+                                    strCurlFullPath,
+                                    __wstring2string(strUrl),
+                                    strFullOldName, UrlEncode(ws2utf8(strNewName)));
+
+    // 2.调用命令重命名
+    std::list<std::string> lstOutput;
+    lpp::CCmdoutput::GetCmdOutput(strCom, lstOutput);
+
+    // 3.解析是否成功 
+    bResult = CheckSuccess(lstOutput);
+
+    return bResult;
+}
+
+// DELETE  /rmfiles
+// curl -X DELETE http://192.168.1.11/rmfiles -F"filepath=1.txt"
+bool CHttpClient::Delete(const std::wstring & strUrl, const std::wstring & strFilePath)
+{
+    bool bResult = false;
+
+    // 1.构造参数
+    std::string strCom = fmt::format("{} -X DELETE {}rmfiles -F \"filepath={}\" -w %{{http_code}}",
+                                     strCurlFullPath,
+                                     __wstring2string(strUrl),
+                                     UrlEncode(ws2utf8(strFilePath)));
+
+    // 2.调用命令重命名
+    std::list<std::string> lstOutput;
+    lpp::CCmdoutput::GetCmdOutput(strCom, lstOutput);
+
+    // 3.解析是否成功 
+    bResult = CheckSuccess(lstOutput, "204");
+
+    return bResult;
+}
+
+bool CHttpClient::CheckSuccess(const std::list<std::string>& lstOutput, const std::string& strHttpCodeSuccess)
+{
+    bool bResult = false;
+    auto itor = std::find(lstOutput.begin(), lstOutput.end(), strHttpCodeSuccess);
+    if (itor != lstOutput.end())
+    {
+        bResult = true;
+    }
+    else
+    {
+        // ??? 记录错误的日志
+    }
+
+    return bResult;
+}
 
 // 获取文件列表
 // curl http://192.168.1.11/files?filepath=log"
-
-// 删除
-// curl -X DELETE http://192.168.1.11/rmfiles -F"filepath=1.txt"

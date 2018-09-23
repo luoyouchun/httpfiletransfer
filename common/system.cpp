@@ -353,6 +353,6 @@ EnviromentGuard::~EnviromentGuard()
         (wcsrchr(szFilePath, L'\\'))[0] = 0;     // 删除文件名，只获得路径字串  
         std::wstring path = szFilePath;
 
-        return path;
+        return std::move(path);
     }
 }

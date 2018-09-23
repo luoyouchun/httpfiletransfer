@@ -18,6 +18,7 @@ Date    Author      Modification:
 #pragma once
 
 #include <string>
+#include <list>
 
 
 class CHttpClient
@@ -39,7 +40,46 @@ public:
     /// <returns>返回是否下载成功</returns>
     bool DownloadFile(const std::wstring& strUrl, const std::wstring& strUri, const std::wstring& strLocalPath, const std::wstring& StrName, uint32_t ulSize = 0);
 
+    /// <summary>
+    /// 上传一个指定的文件到服务器
+    /// </summary>
+    /// <param name="strUrl">上传的地址</param>
+    /// <param name="strHttpDir">上传的文件路径</param>
+    /// <param name="strHttpFileName">上传的文件名</param>
+    /// <param name="strLocalName">本地路径</param>
+    /// <returns>是不成功</returns>
+    bool UploadFile(const std::wstring& strUrl, const std::wstring& strHttpDir, const std::wstring& strHttpFileName,
+                    const std::wstring& strLocalName);
 
+
+    /// <summary>
+    /// 基于CURL，配合chfs实现重命名
+    /// </summary>
+    /// <param name="strUrl">重命名的URL</param>
+    /// <param name="strHttpDir">文件路径</param>
+    /// <param name="strOldName">旧的名称</param>
+    /// <param name="strNewName">新的名称</param>
+    /// <returns>是否成功 </returns>
+    bool Rename(const std::wstring& strUrl, const std::wstring& strHttpDir, const std::wstring& strOldName, const std::wstring& strNewName);
+
+    /// <summary>
+    /// 删除一个文件
+    /// </summary>
+    /// <param name="strUrl">删除文件的URL</param>
+    /// <param name="strFilePath">要删除的文件或目录</param>
+    /// <returns>是否成功</returns>
+    bool Delete(const std::wstring& strUrl, const std::wstring& strFilePath);
+
+ private:
+     /// <summary>
+     /// 通过检查http_code判断是否返回成功
+     /// </summary>
+     /// <param name="lstOutput">调用命令行解析的列表</param>
+     /// <param name="strHttpCodeSuccess">成功的编码</param>
+     /// <returns></returns>
+    bool CheckSuccess(const std::list<std::string>& lstOutput, const std::string& strHttpCodeSuccess = "201");
+
+    std::string strCurlFullPath;              // CURL的所在的全路径
 };
 
 #endif
