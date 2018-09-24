@@ -119,6 +119,7 @@
     <ClCompile Include="HttpClient.cpp" />
     <ClCompile Include="HttpServer.cpp" />
     <ClCompile Include="HttpFile.cpp" />
+    <ClCompile Include="JsonParser.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -133,8 +134,10 @@
   <ItemGroup>
     <ClInclude Include="..\common\dllParser.hpp" />
     <ClInclude Include="..\common\strCoding.h" />
+    <ClInclude Include="CFileInfo.hpp" />
     <ClInclude Include="HttpClient.h" />
     <ClInclude Include="HttpServer.h" />
+    <ClInclude Include="JsonParser.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

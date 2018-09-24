@@ -87,8 +87,8 @@ namespace lpp
         ~EnviromentGuard();
 
     private:
-        BOOL m_bCloseFileRed;
-        PVOID m_oldValue;
+        bool m_bCloseFileRed;
+        void* m_oldValue;
     };
 
     class CCmdoutput

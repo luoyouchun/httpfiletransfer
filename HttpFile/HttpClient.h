@@ -12,6 +12,7 @@ Date    Author      Modification:
 *
 *---------------------------------------------------------------------------------*/
 
+
 #ifndef _CHTTP_CLIENT_H_
 #define _CHTTP_CLIENT_H_
 
@@ -19,6 +20,8 @@ Date    Author      Modification:
 
 #include <string>
 #include <list>
+
+
 
 
 class CHttpClient
@@ -29,7 +32,7 @@ public:
     
     /// <summary>
     /// 使用CURL下载文件
-    /// // GET  /shared/{filepath}
+    /// GET  /shared/{filepath}
     /// curl http://192.168.1.11/share/1.txt -o "c:\1.txt"
     /// </summary>
     /// <param name="strUrl">下载URL</param>
@@ -70,6 +73,15 @@ public:
     /// <returns>是否成功</returns>
     bool Delete(const std::wstring& strUrl, const std::wstring& strFilePath);
 
+    /// <summary>
+    /// 获取指定目录下的文件
+    /// </summary>
+    /// <param name="strUrl">URL</param>
+    /// <param name="strFilePath">路径</param>
+    /// <param name="strFiles">返回的文件列表，json字符串,utf8编码</param>
+    /// <returns>是否成功</returns>
+    bool GetFileList(const std::wstring& strUrl, const std::wstring& strFilePath, std::string& strFilesFind);
+
  private:
      /// <summary>
      /// 通过检查http_code判断是否返回成功
@@ -79,7 +91,7 @@ public:
      /// <returns></returns>
     bool CheckSuccess(const std::list<std::string>& lstOutput, const std::string& strHttpCodeSuccess = "201");
 
-    std::string strCurlFullPath;              // CURL的所在的全路径
+    std::string m_strCurlFullPath;              // CURL的所在的全路径
 };
 
 #endif

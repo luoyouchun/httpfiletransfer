@@ -1,5 +1,19 @@
-﻿#include "HttpClient.h"
-#include <windows.h>
+﻿/*---------------------------------------------------------------------------------
+* Copyright(C),2018
+* FileName:  httpclient.cpp
+* Author:    luoyouchun
+* Version:   1.0
+* Date:      2018-9-18
+* Description:  对curl进行封装，通过调用CURL.exe实现文件上传下载
+
+*---------------------------------------------------------------------------------
+* Modification Histroy
+Date    Author      Modification:
+*
+*---------------------------------------------------------------------------------*/
+
+
+#include "HttpClient.h"
 #include "system.h"
 #include "fmt/format.h"
 #include <memory>
@@ -15,7 +29,7 @@
 CHttpClient::CHttpClient()
 {
     // 获取本地路径
-    strCurlFullPath = fmt::format("{}\\curl.exe", __wstring2string(lpp::GetCurrentPath()));
+    m_strCurlFullPath = fmt::format("{}\\curl.exe", __wstring2string(lpp::GetCurrentPath()));
 }
 
 
@@ -33,7 +47,7 @@ bool CHttpClient::DownloadFile(const std::wstring& strUrl, const std::wstring& s
 
     // 1.2 构造URL
     std::string strCom = fmt::format("{} {}{} -o\"{}\" -w %{{http_code}}",
-                                    strCurlFullPath, __wstring2string(strUrl),
+                                    m_strCurlFullPath, __wstring2string(strUrl),
                                     UrlEncode(ws2utf8(strUri)),
                                     __wstring2string(strLocalPath + StrName));
 
@@ -72,7 +86,7 @@ bool CHttpClient::UploadFile(const std::wstring& strUrl, const std::wstring& str
     // 1.1构造上传的命令行调用
 
     std::string strCom = fmt::format("{} {}upload -F \"folder={}\" -F \"file=@{}; filename={}\" -w %{{http_code}}",
-                                    strCurlFullPath,
+                                    m_strCurlFullPath,
                                     __wstring2string(strUrl),
                                     UrlEncode(ws2utf8(strHttpDir)),
                                     __wstring2string(strLocalName),
@@ -109,7 +123,7 @@ bool CHttpClient::Rename(const std::wstring& strUrl, const std::wstring& strHttp
     std::string strFullOldName = fmt::format("{}/{}", UrlEncode(ws2utf8(strHttpDir)), UrlEncode(ws2utf8(strOldName)));
 
     std::string strCom = fmt::format("{} {}rename -F \"old={}\" -F \"new={}\" -w %{{http_code}}",
-                                    strCurlFullPath,
+                                    m_strCurlFullPath,
                                     __wstring2string(strUrl),
                                     strFullOldName, UrlEncode(ws2utf8(strNewName)));
 
@@ -131,7 +145,7 @@ bool CHttpClient::Delete(const std::wstring & strUrl, const std::wstring & strFi
 
     // 1.构造参数
     std::string strCom = fmt::format("{} -X DELETE {}rmfiles -F \"filepath={}\" -w %{{http_code}}",
-                                     strCurlFullPath,
+                                     m_strCurlFullPath,
                                      __wstring2string(strUrl),
                                      UrlEncode(ws2utf8(strFilePath)));
 
@@ -141,6 +155,42 @@ bool CHttpClient::Delete(const std::wstring & strUrl, const std::wstring & strFi
 
     // 3.解析是否成功 
     bResult = CheckSuccess(lstOutput, "204");
+
+    return bResult;
+}
+
+// 获取文件列表
+// curl http://192.168.1.11/files?filepath=log"
+bool CHttpClient::GetFileList(const std::wstring& strUrl, const std::wstring& strFilePath, std::string& strFilesFind)
+{
+    bool bResult = false;
+
+    // 1.构造参数
+    std::string strCom = fmt::format("{} {}files?filepath={} -w %{{http_code}}",
+                                     m_strCurlFullPath,
+                                     __wstring2string(strUrl),
+                                     UrlEncode(ws2utf8(strFilePath)));
+
+    // 2.调用命令重命名
+    std::list<std::string> lstOutput;
+    lpp::CCmdoutput::GetCmdOutput(strCom, lstOutput);
+
+    // 3.解析是否成功 
+    auto itor = lstOutput.rbegin();
+    if (itor != lstOutput.rend())
+    {
+        std::string strFiles = std::move(*itor);
+        std::size_t nfind = strFiles.find_last_of("200");
+        if (nfind != std::string::npos && nfind == strFiles.length() - 1)
+        {
+            // 成功了，可以解析了符串
+            bResult = true;
+
+            // 擦除后面http_code
+            strFiles.erase(strFiles.size() - 3, 3);
+            strFilesFind.swap(strFiles);
+        }
+    }
 
     return bResult;
 }
@@ -161,5 +211,4 @@ bool CHttpClient::CheckSuccess(const std::list<std::string>& lstOutput, const st
     return bResult;
 }
 
-// 获取文件列表
-// curl http://192.168.1.11/files?filepath=log"
+
