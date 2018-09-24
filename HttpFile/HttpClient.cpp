@@ -25,6 +25,8 @@ Date    Author      Modification:
 #include "boost/uuid/uuid_io.hpp"
 #include "boost/uuid/uuid_generators.hpp"
 
+#include "JsonParser.h"
+
 
 CHttpClient::CHttpClient()
 {
@@ -37,7 +39,7 @@ CHttpClient::~CHttpClient()
 {
 }
 // 下载 http://127.0.0.1:3128/shared//Readme%20-%20%E5%89%AF%E6%9C%AC.txt
-bool CHttpClient::DownloadFile(const std::wstring& strUrl, const std::wstring& strUri,
+bool CHttpClient::DownloadFile(const std::wstring& strUrl, const std::wstring& strFilePath,
                                const std::wstring& strLocalPath, const std::wstring& StrName, uint32_t ulSize)
 {
     bool bResult = false;
@@ -46,9 +48,9 @@ bool CHttpClient::DownloadFile(const std::wstring& strUrl, const std::wstring& s
     // 1.构造准备调用的参数
 
     // 1.2 构造URL
-    std::string strCom = fmt::format("{} {}{} -o\"{}\" -w %{{http_code}}",
+    std::string strCom = fmt::format("{} {}shared//{} -o\"{}\" -w %{{http_code}}",
                                     m_strCurlFullPath, __wstring2string(strUrl),
-                                    UrlEncode(ws2utf8(strUri)),
+                                    UrlEncode(ws2utf8(strFilePath)),
                                     __wstring2string(strLocalPath + StrName));
 
     // 2.同步调用命令行程序完成操作
@@ -57,20 +59,40 @@ bool CHttpClient::DownloadFile(const std::wstring& strUrl, const std::wstring& s
     lpp::CCmdoutput::GetCmdOutput(strCom, lstOutput);
 
     // 3.如果需要检查下载的文件是否正确，需要获取文件大小进行对比操作
-    bResult = true;
+    bResult = CheckSuccess(lstOutput, "200");;
     if (ulSize > 0)
     {
+        // 检查文件大小
         uint32_t ulTem = boost::filesystem::file_size(__wstring2string(strLocalPath + StrName));
         if (ulTem != ulSize)
         {
             bResult = false;
-        }
-        // 检查文件大小
+        }        
     }
 
     return bResult;
 }
 
+// GET / downloaddir / {dir}
+bool CHttpClient::DownloadDir(const std::wstring& strUrl, const std::wstring& strDirPath, const std::wstring& strLocalPath, const std::wstring& StrName)
+{
+    bool bResult = false;
+
+    // 1.构造参数
+    std::string strCom = fmt::format("{} {}downloaddir/{} -o\"{}\" -w %{{http_code}}",
+                                    m_strCurlFullPath, __wstring2string(strUrl),
+                                    UrlEncode(ws2utf8(strDirPath)),
+                                    __wstring2string(strLocalPath + StrName));
+
+    // 2.调用命令重命名
+    std::list<std::string> lstOutput;
+    lpp::CCmdoutput::GetCmdOutput(strCom, lstOutput);
+
+    // 3.解析是否成功 
+    bResult = CheckSuccess(lstOutput, "200");
+
+    return bResult;
+}
 
 // curl http://192.168.1.11/upload -F "folder=logs" -F "file=@1.txt;filename=1.txt"
 bool CHttpClient::UploadFile(const std::wstring& strUrl, const std::wstring& strHttpDir, const std::wstring& strHttpFileName, const std::wstring& strLocalName)
@@ -195,6 +217,72 @@ bool CHttpClient::GetFileList(const std::wstring& strUrl, const std::wstring& st
     return bResult;
 }
 
+// POST  /newdir
+// formData filepath=要创建的目录
+bool CHttpClient::CreateDie(const std::wstring& strUrl, const std::wstring& strDirPath)
+{
+    bool bResult = false;
+
+    // 1.构造参数
+    std::string strCom = fmt::format("{} {}newdir -F \"filepath={}\" -w %{{http_code}}",
+                                      m_strCurlFullPath,
+                                      __wstring2string(strUrl),
+                                      UrlEncode(ws2utf8(strDirPath)));
+
+    // 2.调用命令重命名
+    std::list<std::string> lstOutput;
+    lpp::CCmdoutput::GetCmdOutput(strCom, lstOutput);
+
+    // 3.解析是否成功 
+    bResult = CheckSuccess(lstOutput, "201");
+
+    return bResult;
+}
+
+// POST  /newtext
+bool CHttpClient::CreateTxt(const std::wstring& strUrl, const std::wstring& strDirPath, const std::wstring& strTitle, const std::string& strText)
+{
+    bool bResult = false;
+
+    // 1.构造参数
+    std::string strCom = fmt::format("{} {}newtext -F \"filepath={}\" -F \"title={}\" -F \"text={}\" -w %{{http_code}}",
+                                      m_strCurlFullPath,
+                                      __wstring2string(strUrl),
+                                      UrlEncode(ws2utf8(strDirPath)),
+                                      ws2utf8(strTitle),
+                                      strText);
+
+    // 2.调用命令重命名
+    std::list<std::string> lstOutput;
+    lpp::CCmdoutput::GetCmdOutput(strCom, lstOutput);
+
+    // 3.解析是否成功 
+    bResult = CheckSuccess(lstOutput, "201");
+
+    return bResult;
+}
+
+// GET / exist
+bool CHttpClient::FileExist(const std::wstring & strUrl, const std::wstring & strPath)
+{
+    bool bResult = false;
+
+    // 1.构造参数
+    std::string strCom = fmt::format("{} {}exist?file={} -w %{{http_code}}",
+                                    m_strCurlFullPath,
+                                    __wstring2string(strUrl),
+                                    UrlEncode(ws2utf8(strPath)));
+
+    // 2.调用命令重命名
+    std::list<std::string> lstOutput;
+    lpp::CCmdoutput::GetCmdOutput(strCom, lstOutput);
+
+    // 3.解析是否成功 
+    bResult = CheckSuccess(lstOutput, "201");
+
+    return bResult;
+}
+
 bool CHttpClient::CheckSuccess(const std::list<std::string>& lstOutput, const std::string& strHttpCodeSuccess)
 {
     bool bResult = false;
@@ -210,5 +298,3 @@ bool CHttpClient::CheckSuccess(const std::list<std::string>& lstOutput, const st
 
     return bResult;
 }
-
-

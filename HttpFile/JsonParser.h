@@ -33,10 +33,20 @@ public:
     CJsonParser();
     ~CJsonParser();
 
-    bool ParserFiles(const std::string& strJson, std::list<CFileInfo> lstFiles);
+    bool ParserFiles(const std::string& strJson, std::list<CFileInfo>& lstFiles);
 private:
     bool Parse(const std::string& strJson);
     rapidjson::Document m_docJosn;           // Json解析Dom树
+
+    /// <summary>
+    /// 获取对应节点的Item的值，没有经过转码，通常是UTF8编码
+    /// </summary>
+    /// <param name="value">需要获取值的节点</param>
+    /// <param name="strName">待获取节点的名称</param>
+    /// <returns>节点的值，没有找到，或者失败时，返回空字符串</returns>
+    std::string getString(const rapidjson::Value& value, std::string strName);
+    bool getBool(const rapidjson::Value& value, std::string strName);
+    int64_t getInt64(const rapidjson::Value& value, std::string strName);
 };
 
 

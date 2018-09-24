@@ -21,9 +21,9 @@ Date    Author      Modification:
 #include <string>
 #include <list>
 
-
-
-
+/// <summary>
+/// 基于curl实现对接chfs的HTTP文件管理API
+/// </summary>
 class CHttpClient
 {
 public:
@@ -36,12 +36,22 @@ public:
     /// curl http://192.168.1.11/share/1.txt -o "c:\1.txt"
     /// </summary>
     /// <param name="strUrl">下载URL</param>
-    /// <param name="strUri">下载地址，完整URI，需要进行URL转码</param>
+    /// <param name="strUri">下载文件相对地址，完整URI，需要进行URL转码</param>
     /// <param name="strLocalPath">本地保存路径</param>
     /// <param name="StrName">本地保存的文件名</param>
     /// <param name="ulSize">文件大小，文件大于0时需要校验文件大小，只支持小于4G的文件</param>
     /// <returns>返回是否下载成功</returns>
-    bool DownloadFile(const std::wstring& strUrl, const std::wstring& strUri, const std::wstring& strLocalPath, const std::wstring& StrName, uint32_t ulSize = 0);
+    bool DownloadFile(const std::wstring& strUrl, const std::wstring& strFilePath, const std::wstring& strLocalPath, const std::wstring& StrName, uint32_t ulSize = 0);
+
+    /// <summary>
+    /// 使用CURL打包下载整个文件夹
+    /// </summary>
+    /// <param name="strUrl"></param>
+    /// <param name="strDirPath"></param>
+    /// <param name="strLocalPath"></param>
+    /// <param name="StrName"></param>
+    /// <returns></returns>
+    bool DownloadDir(const std::wstring& strUrl, const std::wstring& strDirPath, const std::wstring& strLocalPath, const std::wstring& StrName);
 
     /// <summary>
     /// 上传一个指定的文件到服务器
@@ -81,6 +91,32 @@ public:
     /// <param name="strFiles">返回的文件列表，json字符串,utf8编码</param>
     /// <returns>是否成功</returns>
     bool GetFileList(const std::wstring& strUrl, const std::wstring& strFilePath, std::string& strFilesFind);
+
+    /// <summary>
+    /// 创建一个目录
+    /// </summary>
+    /// <param name="strUrl">创建目录的URL</param>
+    /// <param name="strDirPath">要创建的目录，需要UTF8编码</param>
+    /// <returns></returns>
+    bool CreateDie(const std::wstring& strUrl, const std::wstring& strDirPath);
+
+    /// <summary>
+    /// 快速共享文本，比如网址。 创建成功后会新增一个文本文件
+    /// </summary>
+    /// <param name="strUrl">创建文本文件网址</param>
+    /// <param name="strDirPath">当前共享的目录</param>
+    /// <param name="strTitle">标题</param>
+    /// <param name="strText">文件</param>
+    /// <returns>创建结果</returns>
+    bool CreateTxt(const std::wstring& strUrl, const std::wstring& strDirPath, const std::wstring& strTitle, const std::string& strText);
+
+    /// <summary>
+    /// 判断文件是否存在
+    /// </summary>
+    /// <param name="strUrl">判断文件是否存在的URL</param>
+    /// <param name="strPath">要查询的文件</param>
+    /// <returns>文件是否存在</returns>
+    bool FileExist(const std::wstring& strUrl, const std::wstring& strPath);
 
  private:
      /// <summary>

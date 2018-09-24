@@ -25,10 +25,13 @@ Date    Author      Modification:
 class CFileInfo
 {
 public:
+    CFileInfo():
+        m_strName(""), m_bDir(false), m_nSize(0), m_strModified(""), m_strIcon(""), m_strMask(""), m_strGguestMask("")
+    {}
+
     CFileInfo(std::string strName, bool bDir, int64_t nSize, std::string strModified, std::string strIcon, std::string strMask, std::string strGguestMask) :
         m_strName(strName), m_bDir(bDir), m_nSize(nSize), m_strModified(strModified), m_strIcon(strIcon), m_strMask(strMask), m_strGguestMask(strGguestMask)
     {
-
     }
 
     CFileInfo(const CFileInfo& oFileInfo)
@@ -38,7 +41,7 @@ public:
 
     CFileInfo(CFileInfo&& oFileInfo)
     {
-        *this = std::forward<CFileInfo>(oFileInfo);
+        *this = std::move(oFileInfo);
     }
     CFileInfo& operator=(const CFileInfo& oFileInfo)
     {
