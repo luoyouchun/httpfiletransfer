@@ -125,11 +125,13 @@ bool CHttpClient::UploadFile(const std::wstring& strUrl, const std::wstring& str
     {
         // 修改名称也成功了，视为成功
         bResult = Rename(strUrl, strHttpDir, __string2wstring(tmp_uuid), strHttpFileName);
-    }
-    {
-        // 改名失败了，还需要删除上传成功的文件
-        std::string strDeleteFilePath = fmt::format("{}/{}", UrlEncode(ws2utf8(strHttpDir)), tmp_uuid);
-        Delete(strUrl, __string2wstring(strDeleteFilePath));
+
+        if (!bResult)
+        {
+            // 改名失败了，还需要删除上传成功的文件
+            std::string strDeleteFilePath = fmt::format("{}/{}", UrlEncode(ws2utf8(strHttpDir)), tmp_uuid);
+            Delete(strUrl, __string2wstring(strDeleteFilePath));
+        }
     }
 
     return bResult;
